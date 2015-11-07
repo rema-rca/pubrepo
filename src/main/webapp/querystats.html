@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- start: Meta -->
+<meta charset="utf-8">
+<title>Stanalyzer</title>
+<meta name="description"
+	content="All favourite vegan recipes in one place" />
+<meta name="keywords" content="Stanovi, Nekretnine" />
+<meta name="author" content="Nikola Maric" />
+<!-- end: Meta -->
+<!-- start: Mobile Specific -->
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1">
+<!-- end: Mobile Specific -->
+<!-- start: Facebook Open Graph -->
+<meta property="og:title" content="" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="" />
+<meta property="og:url" content="" />
+<meta property="og:image" content="" />
+<!-- end: Facebook Open Graph -->
+<!-- start: CSS -->
+<link
+	href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"
+	rel="stylesheet">
+<link href="static/css/style.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css"
+	href="http://fonts.googleapis.com/css?family=Droid+Sans:400,700">
+<link rel="stylesheet" type="text/css"
+	href="http://fonts.googleapis.com/css?family=Droid+Serif">
+<link rel="stylesheet" type="text/css"
+	href="http://fonts.googleapis.com/css?family=Boogaloo">
+<link rel="stylesheet" type="text/css"
+	href="http://fonts.googleapis.com/css?family=Economica:700,400italic">
+<link rel="stylesheet" type="text/css"
+	href="static/css/jquery.jqplot.css" />
+<!-- end: CSS -->
+<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+<!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+<script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script
+	src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script
+	src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/jquery-ui.min.js"></script>
+<script>
+	$(function() {
+		$("#statisticsAccordion").accordion({
+			collapsible : true,
+			heightStyle : "content"
+		});
+		$("queries").popover();
+		$("queryExecutionMaxTimeQueryString").popover();
+		setInterval(function () {
+        	$.getJSON( "http://localhost:8778/jolokia/read/Hibernate:type=statistics", function( ajaxdata ) {
+        		
+        		$("#statisticsAccordion").find("span.badge").each(function(){
+        			var that = $(this);
+        			if(that.attr("id").indexOf("startTime") != -1) {
+        				that.text(new Date(parseInt(ajaxdata.value.Object[that.attr("id")])));
+        			}
+        			else if(that.attr("id").indexOf("queryExecutionMaxTimeQueryString") != -1) {
+        				that.attr("data-content",ajaxdata.value.Object[that.attr("id")])
+        			}
+					else if(that.attr("id").indexOf("queries") != -1) {
+						that.attr("data-content",ajaxdata.value.Object[that.attr("id")])
+        			}
+					else {
+						that.text(ajaxdata.value.Object[that.attr("id")]);
+					}
+        		})
+        		
+        		
+        		
+        		var d = new Date,
+        	    dformat = [d.getDate(),
+        	               d.getMonth()+1,
+        	               d.getFullYear()].join('/')+' '+
+        	              [d.getHours(),
+        	               d.getMinutes(),
+        	               d.getSeconds()].join(':');
+        		$("#entityStatisticsHeader").text("Entity statistics" + " - " + dformat);
+        		$("#cacheStatisticsHeader").text("Cache statistics" + " - " + dformat);
+        		$("#connectionStatisticsHeader").text("Connection/query statistics" + " - " + dformat);
+        	});
+		},5000);
+		
+		$("#queryExecutionMaxTimeQueryString,#queries").click(function(){
+				$('#myModalLabel').text($(this).attr('data-header'))
+				$('#modalBody').text($(this).attr('data-content'))
+				$('#basicModal').modal();
+			})
+	});
+</script>
+</head>
+<body>
+	<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button type="button" data-target="#navbarCollapse"
+					data-toggle="collapse" class="navbar-toggle">
+					<span class="sr-only">Toggle navigation</span> <span
+						class="icon-bar"></span> <span class="icon-bar"></span> <span
+						class="icon-bar"></span>
+				</button>
+				<a id="navbar-brand" href="index.html" class="navbar-brand">Stanalyzer</a>
+			</div>
+			<div class="collapse navbar-collapse">
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="logout">Log-out</a></li>
+				</ul>
+				<ul class="nav navbar-nav">
+					<li><a href="index.html">Appartment list</a></li>
+					<li class="active"><a href="#" class="dropdown-toggle"
+						data-toggle="dropdown">Dashboard<b class="caret"></b></a>
+						<ul class="dropdown-menu multi-level">
+							<li><a href="tmem.html">Thread/Memory Monitor</a></li>
+							<li class="active"><a href="#">Query statistics</a></li>
+							<li><a href="#">Tailer</a></li>
+							<li class="divider"></li>
+							<li><a href="#">System info</a></li>
+						</ul></li>
+					<li><a href="query.html">Analyze dataset</a></li>
+				</ul>
+			</div>
+			<!--/.nav-collapse -->
+		</div>
+	</div>
+
+	<!--start: Container -->
+	<div class="container-fluid vert-offset-top-6">
+		<div class="col-md-1"></div>
+		<div class="panel panel-primary col-md-10">
+
+			<div id="statisticsAccordion">
+				<h3 id="entityStatisticsHeader" style="cursor: pointer;">Entity
+					statistics</h3>
+				<div>
+					<ul class="list-group">
+						<li class="list-group-item"><span id="startTime"
+							class="badge">-</span> Start time</li>
+						<li class="list-group-item"><span id="entityLoadCount"
+							class="badge">-</span> Entity load count</li>
+						<li class="list-group-item"><span id="entityInsertCount"
+							class="badge">-</span> Entity insert count</li>
+						<li class="list-group-item"><span id="entityUpdateCount"
+							class="badge">-</span> Entity update count</li>
+						<li class="list-group-item"><span id="entityFetchCount"
+							class="badge">-</span> Entity fetch count</li>
+						<li class="list-group-item"><span id="entityDeleteCount"
+							class="badge">-</span> Entity delete count</li>
+						<li class="list-group-item"><span id="collectionLoadCount"
+							class="badge">-</span> Collection load count</li>
+						<li class="list-group-item"><span id="collectionUpdateCount"
+							class="badge">-</span> Collection update count</li>
+						<li class="list-group-item"><span id="collectionFetchCount"
+							class="badge">-</span> Collection fetch count</li>
+						<li class="list-group-item"><span id="collectionRemoveCount"
+							class="badge">-</span> Collection remove count</li>
+					</ul>
+				</div>
+				<h3 id="cacheStatisticsHeader" style="cursor: pointer;">Cache
+					statistics</h3>
+				<div>
+					<ul class="list-group">
+						<li class="list-group-item"><span
+							id="secondLevelCachePutCount" class="badge">-</span> Second level
+							cache put count</li>
+						<li class="list-group-item"><span
+							id="secondLevelCacheMissCount" class="badge">-</span> Second
+							level cache miss count</li>
+						<li class="list-group-item"><span
+							id="secondLevelCacheHitCount" class="badge">-</span> Second level
+							cache hit count</li>
+						<li class="list-group-item"><span id="queryCacheMissCount"
+							class="badge">-</span> Query cache cache miss count</li>
+						<li class="list-group-item"><span id="queryCacheHitCount"
+							class="badge">-</span> Query cache cache hit count</li>
+						<li class="list-group-item"><span id="naturalIdCachePutCount"
+							class="badge">-</span> Natural id cache put count</li>
+						<li class="list-group-item"><span id="naturalIdCacheHitCount"
+							class="badge">-</span> Natural id cache hit count</li>
+						<li class="list-group-item"><span
+							id="naturalIdCacheMissCount" class="badge">-</span> Natural id
+							cache miss count</li>
+						<li class="list-group-item"><span
+							id="updateTimestampsCachePutCount" class="badge">-</span> Update
+							timestamps cache put count</li>
+						<li class="list-group-item"><span
+							id="updateTimestampsCacheMissCount" class="badge">-</span> Update
+							timestamps cache miss count</li>
+						<li class="list-group-item"><span
+							id="updateTimestampsCacheHitCount" class="badge">-</span> Update
+							timestamps cache hit count</li>
+					</ul>
+				</div>
+				<h3 id="connectionStatisticsHeader" style="cursor: pointer;">Connection/query
+					statistics</h3>
+				<div>
+					<ul class="list-group">
+						<li class="list-group-item"><span id="connectCount"
+							class="badge">-</span> Connection count</li>
+						<li class="list-group-item"><span id="sessionOpenCount"
+							class="badge">-</span> Session open count</li>
+						<li class="list-group-item"><span id="sessionCloseCount"
+							class="badge">-</span> Session close count</li>
+						<li class="list-group-item"><span id="optimisticFailureCount"
+							class="badge">-</span> Optimistic failure count</li>
+						<li class="list-group-item"><span
+							id="naturalIdQueryExecutionCount" class="badge">-</span> Natural
+							id query execution count</li>
+						<li class="list-group-item"><span id="prepareStatementCount"
+							class="badge">-</span> Number of Prepared statements</li>
+						<li class="list-group-item"><span id="flushCount"
+							class="badge">-</span> Number of Flush statements</li>
+						<li class="list-group-item"><span id="closeStatementCount"
+							class="badge">-</span> Number of Close statements</li>
+						<li class="list-group-item"><span id="queryExecutionCount"
+							class="badge">-</span> Number of queries executed</li>
+						<li class="list-group-item"><span id="transactionCount"
+							class="badge">-</span> Number of transactions</li>
+						<li class="list-group-item"><span
+							id="successfulTransactionCount" class="badge">-</span> Number of
+							successful transactions</li>
+						<li class="list-group-item"><span data-toggle="popover" title="Popover title" data-header="Query with maximum execution time"
+							id="queryExecutionMaxTimeQueryString" style="cursor:pointer;" data-content="" class="badge">?</span>
+							Query with maximum execution time</li>
+						<li class="list-group-item"><span id="queryExecutionMaxTime"
+							class="badge">-</span> Maximum query execution time</li>
+						<li class="list-group-item"><span style="cursor:pointer;" data-content="" data-toggle="popover" title="Popover title" data-header="List of queries" id="queries" class="badge">?</span>
+							Queries</li>
+					</ul>
+				</div>
+			</div>
+
+
+
+
+
+		</div>
+		<div class="col-md-1"></div>
+	</div>
+	
+	<div class="modal fade" id="basicModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+            <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+            </div>
+            <div id="modalBody" class="modal-body">
+                <h3>Modal Body</h3>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

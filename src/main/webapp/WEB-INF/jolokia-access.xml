@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<restrict>
+
+	<cors>
+		<!-- Allow cross origin access from www.jolokia.org ... -->
+		<allow-origin>*://*.*</allow-origin>
+
+
+		<strict-checking />
+	</cors>
+
+	<deny>
+		<mbean>
+			<name>com.mchange.v2.c3p0:type=PooledDataSource,*</name>
+			<attribute>properties</attribute>
+		</mbean>
+	</deny>
+
+</restrict>
+
+
+
